@@ -1,0 +1,62 @@
+import cv2, os
+import numpy as np
+import cv2 as cv
+from os import listdir
+from os.path import isfile, join
+
+def preprocessing_crop():
+    for n in os.listdir('./assets/representative/resume/src'): # 원본 사진이 들어있는 폴더 경로
+        face_cascade = cv.CascadeClassifier('haarcascade_frontalface_default.xml')
+        img_path = './assets/representative/resume/src/' + n # 원본 사진의 이미지 경로
+        img = cv.imread(img_path)
+        height, width, channels = img.shape
+        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY) # 얼굴을 검출할 그레이스케일 이미지를 준비해놓습니다.
+        # 이미지에서 얼굴을 검출합니다.
+        faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+        # 얼굴이 검출되었다면 얼굴 위치에 대한 좌표 정보를 리턴받습니다.
+        for (x,y,w,h) in faces:
+            # 가로는 w기준으로, x1 : w : x1 으로 자른다
+            # 가로는 h기준으로, y_up : h : y_down 으로 자른다
+            x1 = int(0.53 * (w / 2))
+            x2 = x + w + x1
+            y_up = int(0.88 * (h / 2))
+            y_down = int(1.4 * (h / 2))
+            # 패딩을 얼마나 줄 것인지를 각각 구한다.
+            # 왼쪽
+            if x1 - x > 0:
+                left = x1 - x + 1
+            else:
+                left = 0
+            # 오른쪽
+            if x + w + x1 > width:
+                right = x + w + x1 - width + 1
+            else:
+                right = 0
+            # 위
+            if y_up - y > 0:
+                up = y_up - y + 1
+            else:
+                up = 0
+            # 아래
+            if y + h + y_down > height:
+                down = y + h + y_down - height + 1
+            else:
+                down = 0
+            px = img[int(width/2), 1].tolist() # img의 (width/2, 1) 의 좌표 색상으로 패딩을 준다.
+            constant = cv2.copyMakeBorder(img, up, down, left, right, cv2.BORDER_CONSTANT, value=px) # 위 아래 왼 오 // 이미지에 패딩을 준다.
+            gray2 = cv.cvtColor(constant, cv.COLOR_BGR2GRAY)
+            faces2 = face_cascade.detectMultiScale(gray2, 1.3, 5) # 패딩을 준 이미지에서 다시 얼굴을 검출합니다.
+            # 얼굴이 검출되었다면 얼굴 위치에 대한 좌표 정보를 리턴받습니다.
+            for (x,y,w,h) in faces2:
+                if y > y_up:
+                    starty = y - y_up
+                else:
+                    starty = y_up - y
+                if x > x1:
+                    startx = x - x1
+                else:
+                    startx = x1 - x
+                endy = y + h + y_down
+                endx = x + w + x1
+                cropped = constant[starty:endy, startx:endx]
+                cv2.imwrite('./assets/representative/resume/src/'+n, cropped) # 최종 이미지를 저장할 경로 지정

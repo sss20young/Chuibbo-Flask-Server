@@ -51,11 +51,11 @@ class Solver(nn.Module):
                     weight_decay=args.weight_decay)
 
             self.ckptios = [
-                CheckpointIO(ospj(args.checkpoint_dir, '{:06d}_nets.ckpt'), **self.nets),
-                CheckpointIO(ospj(args.checkpoint_dir, '{:06d}_nets_ema.ckpt'), **self.nets_ema),
-                CheckpointIO(ospj(args.checkpoint_dir, '{:06d}_optims.ckpt'), **self.optims)]
+                CheckpointIO(ospj(args.checkpoint_dir, '020000_nets.ckpt'), **self.nets), # 파일명 020000으로 지정
+                CheckpointIO(ospj(args.checkpoint_dir, '020000_nets_ema.ckpt'), **self.nets_ema), # 파일명 020000으로 지정
+                CheckpointIO(ospj(args.checkpoint_dir, '020000_optims.ckpt'), **self.optims)] # 파일명 020000으로 지정 
         else:
-            self.ckptios = [CheckpointIO(ospj(args.checkpoint_dir, '{:06d}_nets_ema.ckpt'), **self.nets_ema)]
+            self.ckptios = [CheckpointIO(ospj(args.checkpoint_dir, '020000_nets_ema.ckpt'), **self.nets_ema)] # 파일명 020000으로 지정
 
         self.to(self.device)
         for name, network in self.named_children():
