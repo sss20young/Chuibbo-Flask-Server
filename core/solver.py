@@ -180,13 +180,9 @@ class Solver(nn.Module):
         src = next(InputFetcher(loaders.src, None, args.latent_dim, 'test'))
         ref = next(InputFetcher(loaders.ref, None, args.latent_dim, 'test'))
 
-        fname = ospj(args.result_dir, args.result_image_name) # 저장될 이미지 파일 이름 변경
+        fname = ospj(args.result_dir, args.result_image_name) # 저장될 결과 이미지 파일 이름 변경
         print('Working on {}...'.format(fname))
         utils.translate_using_reference(nets_ema, args, src.x, ref.x, ref.y, fname)
-
-        fname = ospj(args.result_dir, 'video_ref.mp4')
-        print('Working on {}...'.format(fname))
-        utils.video_ref(nets_ema, args, src.x, ref.x, ref.y, fname)
 
     @torch.no_grad()
     def evaluate(self):
