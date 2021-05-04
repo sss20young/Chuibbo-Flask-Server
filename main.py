@@ -40,28 +40,7 @@ def main(args):
 
     solver = Solver(args)
 
-    if args.mode == 'train':
-        assert len(subdirs(args.train_img_dir)) == args.num_domains
-        assert len(subdirs(args.val_img_dir)) == args.num_domains
-        loaders = Munch(src=get_train_loader(root=args.train_img_dir,
-                                             which='source',
-                                             img_size=args.img_size,
-                                             batch_size=args.batch_size,
-                                             prob=args.randcrop_prob,
-                                             num_workers=args.num_workers),
-                        ref=get_train_loader(root=args.train_img_dir,
-                                             which='reference',
-                                             img_size=args.img_size,
-                                             batch_size=args.batch_size,
-                                             prob=args.randcrop_prob,
-                                             num_workers=args.num_workers),
-                        val=get_test_loader(root=args.val_img_dir,
-                                            img_size=args.img_size,
-                                            batch_size=args.val_batch_size,
-                                            shuffle=True,
-                                            num_workers=args.num_workers))
-        solver.train(loaders)
-    elif args.mode == 'sample':
+    if args.mode == 'sample':
         assert len(subdirs(args.src_dir)) == args.num_domains
         assert len(subdirs(args.ref_dir)) == args.num_domains
         loaders = Munch(src=get_test_loader(root=args.src_dir,
@@ -75,11 +54,6 @@ def main(args):
                                             shuffle=False,
                                             num_workers=args.num_workers))
         solver.sample(loaders)
-    elif args.mode == 'eval':
-        solver.evaluate()
-    elif args.mode == 'align':
-        from core.wing import align_faces
-        align_faces(args, args.inp_dir, args.out_dir)
     else:
         raise NotImplementedError
     return "A"
@@ -115,13 +89,11 @@ def resume_photo():
         # TODO: assets/representative/resume/ref 폴더에 합성할 사진 넣어주고 그 중 선택
         print("----- Start creating resume photo!! -----")
         main(arguments)
-
         print("----- Finish creating resume photo!! -----")
 
     elif request.method == 'GET':
         # TODO: STEP 5: 생성된 사진 전송
         print("----- Start sending resume photo!! -----")
-        main(arguments)
 
         # TODO: STEP 6: assets/representative/resume/src 폴더에 저장된 사진 삭제
         
@@ -131,7 +103,6 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    # TODO: 필요한 argument 속성만 남겨두기
     # model arguments
     parser.add_argument('--img_size', type=int, default=256, help='Image resolution')
     parser.add_argument('--num_domains', type=int, default=3, help='Number of domains')
@@ -167,30 +138,17 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=777, help='Seed for random number generator')
 
     # directory for training
-    parser.add_argument('--train_img_dir', type=str, default='data/celeba_hq/train', help='Directory containing training images')
-    parser.add_argument('--val_img_dir', type=str, default='data/celeba_hq/val', help='Directory containing validation images')
     parser.add_argument('--sample_dir', type=str, default='expr/samples', help='Directory for saving generated images')
     parser.add_argument('--checkpoint_dir', type=str, default='expr/checkpoints/resume', help='Directory for saving network checkpoints')
-
-    # directory for calculating metrics
-    parser.add_argument('--eval_dir', type=str, default='expr/eval', help='Directory for saving metrics, i.e., FID and LPIPS')
 
     # directory for testing
     parser.add_argument('--result_dir', type=str, default='expr/results/resume', help='Directory for saving generated images and videos')
     parser.add_argument('--src_dir', type=str, default='assets/representative/resume/src', help='Directory containing input source images')
     parser.add_argument('--ref_dir', type=str, default='assets/representative/resume/ref', help='Directory containing input reference images')
-    #parser.add_argument('--inp_dir', type=str, default='assets/representative/custom/female', help='input directory when aligning faces')
-    #parser.add_argument('--out_dir', type=str, default='assets/representative/resume/src/female', help='output directory when aligning faces')
 
     # face alignment
     parser.add_argument('--wing_path', type=str, default='expr/checkpoints/wing.ckpt')
     parser.add_argument('--lm_path', type=str, default='expr/checkpoints/celeba_lm_mean.npz')
-
-    # step size
-    parser.add_argument('--print_every', type=int, default=10)
-    parser.add_argument('--sample_every', type=int, default=5000)
-    parser.add_argument('--save_every', type=int, default=10000)
-    parser.add_argument('--eval_every', type=int, default=50000)
 
     global arguments
     arguments = parser.parse_args()
