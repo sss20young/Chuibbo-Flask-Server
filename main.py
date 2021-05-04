@@ -62,9 +62,12 @@ def main(args):
 @app.route('/api/resume_photo/', methods=['GET', 'POST'])
 def resume_photo():
     if request.method == 'POST':
-        # TODO: STEP 1: 사진 받고, assets/representative/resume/src 폴더에 사진 저장
+        # TODO: STEP 1: 안드로이드에서 요청한 사진 받고, assets/representative/resume/src 폴더에 사진 저장
         # photo = flask.request.files.get('image')
-        # photo.save('./assets/representative/resume/src')
+        save_image_path = './assets/representative/resume/src/' + 'long/'
+        image_name = 'e.jpg' # TODO: 사진이름 동적으로 생성 ex. 아이디+날짜시간
+        url = save_image_path + image_name
+        # photo.save(url)
 
         # encodedImg = request.form['file'] # 'file' is the name of the parameter you used to send the image
         # imgdata = base64.b64decode(encodedImg)
@@ -86,10 +89,14 @@ def resume_photo():
         preprocessing_crop(url) # TODO: 도메인별(여-남, 헤어스타일 등)에 따라 다른 값 주기
         
         # STEP 4: 모델을 통해 resume photo 생성
+        # TODO: 사진 저장 시, 결과 사진 한 장만 저장
         # TODO: assets/representative/resume/ref 폴더에 합성할 사진 넣어주고 그 중 선택
+        arguments.result_image_name = image_name # 저장될 이미지 파일 이름 지정
         print("----- Start creating resume photo!! -----")
         main(arguments)
         print("----- Finish creating resume photo!! -----")
+
+        return "<h1>Success</h1>"
 
     elif request.method == 'GET':
         # TODO: STEP 5: 생성된 사진 전송
@@ -149,6 +156,9 @@ if __name__ == '__main__':
     # face alignment
     parser.add_argument('--wing_path', type=str, default='expr/checkpoints/wing.ckpt')
     parser.add_argument('--lm_path', type=str, default='expr/checkpoints/celeba_lm_mean.npz')
+
+    # 저장될 이미지 파일 이름
+    parser.add_argument('--result_image_name', type=str, default='.jpg', help='File for resulting image')
 
     global arguments
     arguments = parser.parse_args()
