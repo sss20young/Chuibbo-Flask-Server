@@ -22,7 +22,7 @@ from core.data_loader import get_train_loader
 from core.data_loader import get_test_loader
 from core.solver import Solver
 
-from preprocessing import preprocessing_crop
+from img_processing import detect_faces, preprocessing_crop
 
 
 app = Flask(__name__)
@@ -40,28 +40,7 @@ def main(args):
 
     solver = Solver(args)
 
-    if args.mode == 'train':
-        assert len(subdirs(args.train_img_dir)) == args.num_domains
-        assert len(subdirs(args.val_img_dir)) == args.num_domains
-        loaders = Munch(src=get_train_loader(root=args.train_img_dir,
-                                             which='source',
-                                             img_size=args.img_size,
-                                             batch_size=args.batch_size,
-                                             prob=args.randcrop_prob,
-                                             num_workers=args.num_workers),
-                        ref=get_train_loader(root=args.train_img_dir,
-                                             which='reference',
-                                             img_size=args.img_size,
-                                             batch_size=args.batch_size,
-                                             prob=args.randcrop_prob,
-                                             num_workers=args.num_workers),
-                        val=get_test_loader(root=args.val_img_dir,
-                                            img_size=args.img_size,
-                                            batch_size=args.val_batch_size,
-                                            shuffle=True,
-                                            num_workers=args.num_workers))
-        solver.train(loaders)
-    elif args.mode == 'sample':
+    if args.mode == 'sample':
         assert len(subdirs(args.src_dir)) == args.num_domains
         assert len(subdirs(args.ref_dir)) == args.num_domains
         loaders = Munch(src=get_test_loader(root=args.src_dir,
@@ -75,22 +54,20 @@ def main(args):
                                             shuffle=False,
                                             num_workers=args.num_workers))
         solver.sample(loaders)
-    elif args.mode == 'eval':
-        solver.evaluate()
-    elif args.mode == 'align':
-        from core.wing import align_faces
-        align_faces(args, args.inp_dir, args.out_dir)
     else:
         raise NotImplementedError
     return "A"
 
-# @app.route('/api/resume_photo/', method=['GET', 'POST'])
-@app.route('/api/resume_photo/')
+
+@app.route('/api/resume_photo/', methods=['GET', 'POST'])
 def resume_photo():
     if request.method == 'POST':
-        # TODO: STEP 1: 사진 받고, assets/representative/resume/src 폴더에 사진 저장
+        # TODO: STEP 1: 안드로이드에서 요청한 사진 받고, assets/representative/resume/src 폴더에 사진 저장
         # photo = flask.request.files.get('image')
-        # photo.save('./assets/representative/resume/src')
+        save_image_path = './assets/representative/resume/src/' + 'long/'
+        image_name = 'e.jpg' # TODO: 사진이름 동적으로 생성 ex. 아이디+날짜시간
+        url = save_image_path + image_name
+        # photo.save(url)
 
         # encodedImg = request.form['file'] # 'file' is the name of the parameter you used to send the image
         # imgdata = base64.b64decode(encodedImg)
@@ -98,22 +75,32 @@ def resume_photo():
         # with open(filename, 'wb') as f:
         #     f.write(imgdata)
 
-        # TODO: STEP 2: 사람이 둘 이상 감지되는지 확인
+        # STEP 2: 사람이 둘 이상 감지되는지 확인
+        number_of_face_detection = detect_faces(url)
+        if number_of_face_detection >= 2:
+            print(number_of_face_detection) # TODO: 2인 감지됐을 때, 어떻게 할 것인지
+        elif number_of_face_detection == 1:
+            print(number_of_face_detection)
+        else:
+            print(number_of_face_detection) # TODO: 0인 감지됐을 때, 어떻게 할 것인지
 
-        # TODO: STEP 3: 사람얼굴인지 인식하고, 사람얼굴이면 전처리 실행 후 덮어쓰기
-        # preprocessing_crop() # TODO: 도메인별(여-남, 헤어스타일 등)에 따라 다른 값 주기
+
+        # STEP 3: 전처리(얼굴 가운데로 맞추는) 실행 후 origin image에 덮어쓰기
+        preprocessing_crop(url) # TODO: 도메인별(여-남, 헤어스타일 등)에 따라 다른 값 주기
         
         # STEP 4: 모델을 통해 resume photo 생성
+        # TODO: 사진 저장 시, 결과 사진 한 장만 저장
         # TODO: assets/representative/resume/ref 폴더에 합성할 사진 넣어주고 그 중 선택
+        arguments.result_image_name = image_name # 저장될 이미지 파일 이름 지정
         print("----- Start creating resume photo!! -----")
         main(arguments)
-
         print("----- Finish creating resume photo!! -----")
+
+        return "<h1>Success</h1>"
 
     elif request.method == 'GET':
         # TODO: STEP 5: 생성된 사진 전송
         print("----- Start sending resume photo!! -----")
-        main(arguments)
 
         # TODO: STEP 6: assets/representative/resume/src 폴더에 저장된 사진 삭제
         
@@ -123,7 +110,6 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
-    # TODO: 필요한 argument 속성만 남겨두기
     # model arguments
     parser.add_argument('--img_size', type=int, default=256, help='Image resolution')
     parser.add_argument('--num_domains', type=int, default=3, help='Number of domains')
@@ -159,30 +145,20 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=777, help='Seed for random number generator')
 
     # directory for training
-    parser.add_argument('--train_img_dir', type=str, default='data/celeba_hq/train', help='Directory containing training images')
-    parser.add_argument('--val_img_dir', type=str, default='data/celeba_hq/val', help='Directory containing validation images')
     parser.add_argument('--sample_dir', type=str, default='expr/samples', help='Directory for saving generated images')
     parser.add_argument('--checkpoint_dir', type=str, default='expr/checkpoints/resume', help='Directory for saving network checkpoints')
-
-    # directory for calculating metrics
-    parser.add_argument('--eval_dir', type=str, default='expr/eval', help='Directory for saving metrics, i.e., FID and LPIPS')
 
     # directory for testing
     parser.add_argument('--result_dir', type=str, default='expr/results/resume', help='Directory for saving generated images and videos')
     parser.add_argument('--src_dir', type=str, default='assets/representative/resume/src', help='Directory containing input source images')
     parser.add_argument('--ref_dir', type=str, default='assets/representative/resume/ref', help='Directory containing input reference images')
-    #parser.add_argument('--inp_dir', type=str, default='assets/representative/custom/female', help='input directory when aligning faces')
-    #parser.add_argument('--out_dir', type=str, default='assets/representative/resume/src/female', help='output directory when aligning faces')
 
     # face alignment
     parser.add_argument('--wing_path', type=str, default='expr/checkpoints/wing.ckpt')
     parser.add_argument('--lm_path', type=str, default='expr/checkpoints/celeba_lm_mean.npz')
 
-    # step size
-    parser.add_argument('--print_every', type=int, default=10)
-    parser.add_argument('--sample_every', type=int, default=5000)
-    parser.add_argument('--save_every', type=int, default=10000)
-    parser.add_argument('--eval_every', type=int, default=50000)
+    # 저장될 이미지 파일 이름
+    parser.add_argument('--result_image_name', type=str, default='.jpg', help='File for resulting image')
 
     global arguments
     arguments = parser.parse_args()
