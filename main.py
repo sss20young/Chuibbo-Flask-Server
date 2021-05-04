@@ -22,7 +22,7 @@ from core.data_loader import get_train_loader
 from core.data_loader import get_test_loader
 from core.solver import Solver
 
-from preprocessing import preprocessing_crop
+from img_processing import detect_faces, preprocessing_crop
 
 
 app = Flask(__name__)
@@ -84,8 +84,8 @@ def main(args):
         raise NotImplementedError
     return "A"
 
-# @app.route('/api/resume_photo/', method=['GET', 'POST'])
-@app.route('/api/resume_photo/')
+
+@app.route('/api/resume_photo/', methods=['GET', 'POST'])
 def resume_photo():
     if request.method == 'POST':
         # TODO: STEP 1: 사진 받고, assets/representative/resume/src 폴더에 사진 저장
@@ -98,10 +98,18 @@ def resume_photo():
         # with open(filename, 'wb') as f:
         #     f.write(imgdata)
 
-        # TODO: STEP 2: 사람이 둘 이상 감지되는지 확인
+        # STEP 2: 사람이 둘 이상 감지되는지 확인
+        number_of_face_detection = detect_faces(url)
+        if number_of_face_detection >= 2:
+            print(number_of_face_detection) # TODO: 2인 감지됐을 때, 어떻게 할 것인지
+        elif number_of_face_detection == 1:
+            print(number_of_face_detection)
+        else:
+            print(number_of_face_detection) # TODO: 0인 감지됐을 때, 어떻게 할 것인지
 
-        # TODO: STEP 3: 사람얼굴인지 인식하고, 사람얼굴이면 전처리 실행 후 덮어쓰기
-        # preprocessing_crop() # TODO: 도메인별(여-남, 헤어스타일 등)에 따라 다른 값 주기
+
+        # STEP 3: 전처리(얼굴 가운데로 맞추는) 실행 후 origin image에 덮어쓰기
+        preprocessing_crop(url) # TODO: 도메인별(여-남, 헤어스타일 등)에 따라 다른 값 주기
         
         # STEP 4: 모델을 통해 resume photo 생성
         # TODO: assets/representative/resume/ref 폴더에 합성할 사진 넣어주고 그 중 선택
