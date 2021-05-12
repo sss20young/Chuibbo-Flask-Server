@@ -64,7 +64,8 @@ def resume_photo():
     if request.method == 'POST':
         # TODO: STEP 1: 안드로이드에서 요청한 사진 받고, assets/representative/resume/src 폴더에 사진 저장
         # photo = flask.request.files.get('image')
-        save_image_path = './assets/representative/resume/src/' + 'long/'
+        arguments.selected_hairstyle = 'mid' # TODO: 안드로이드에서 헤어스타일 도메인 받기
+        save_image_path = './assets/representative/resume/src/' + arguments.selected_hairstyle + '/'
         image_name = 'e.jpg' # TODO: 사진이름 동적으로 생성 ex. 아이디+날짜시간
         url = save_image_path + image_name
         # photo.save(url)
@@ -159,6 +160,7 @@ if __name__ == '__main__':
 
     # 저장될 이미지 파일 이름
     parser.add_argument('--result_image_name', type=str, default='.jpg', help='File for resulting image')
+    parser.add_argument('--selected_hairstyle', type=str, default='short', help='Selected hairstyle by user')
 
     global arguments
     arguments = parser.parse_args()
