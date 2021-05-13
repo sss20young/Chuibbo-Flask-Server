@@ -101,21 +101,22 @@ def translate_using_latent(nets, args, x_src, y_trg_list, z_trg_list, psi, filen
 @torch.no_grad()
 def translate_using_reference(nets, args, x_src, x_ref, y_ref, filename):
     N, C, H, W = x_src.size()
-    wb = torch.ones(1, C, H, W).to(x_src.device)
-    x_src_with_wb = torch.cat([wb, x_src], dim=0)
 
     masks = nets.fan.get_heatmap(x_src) if args.w_hpf > 0 else None
     s_ref = nets.style_encoder(x_ref, y_ref)
     s_ref_list = s_ref.unsqueeze(1).repeat(1, N, 1)
-    x_concat = [x_src_with_wb]
-    for i, s_ref in enumerate(s_ref_list):
-        x_fake = nets.generator(x_src, s_ref, masks=masks)
-        x_fake_with_ref = torch.cat([x_ref[i:i+1], x_fake], dim=0)
-        x_concat += [x_fake_with_ref]
 
-    x_concat = torch.cat(x_concat, dim=0)
-    save_image(x_concat, N+1, filename)
-    del x_concat
+    # 유저가 선택한 헤어스타일 도메인만 적용
+    if args.selected_hairstyle == 'long': start, end = 0, 3
+    elif args.selected_hairstyle == 'mid': start, end = 3, 6
+    else: start, end = 6, 9
+    
+    for i, s_ref in enumerate(s_ref_list):
+        if i >= start and i < end:
+            x_fake = nets.generator(x_src, s_ref, masks=masks)
+
+            # 결과물 이미지만 저장
+            save_image(x_fake, N+1, filename[:-4] + str(i) + filename[-4:]) # ex. image_name + 1 + .jpg
 
 
 @torch.no_grad()
