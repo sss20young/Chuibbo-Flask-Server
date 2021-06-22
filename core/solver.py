@@ -55,7 +55,7 @@ class Solver(nn.Module):
                 CheckpointIO(ospj(args.checkpoint_dir, '020000_nets_ema.ckpt'), **self.nets_ema), # 파일명 020000으로 지정
                 CheckpointIO(ospj(args.checkpoint_dir, '020000_optims.ckpt'), **self.optims)] # 파일명 020000으로 지정 
         else:
-            self.ckptios = [CheckpointIO(ospj(args.checkpoint_dir, '020000_nets_ema.ckpt'), **self.nets_ema)] # 파일명 020000으로 지정
+            self.ckptios = [CheckpointIO(ospj(args.checkpoint_dir, '100000_nets_ema.ckpt'), **self.nets_ema)] # 파일명 100000으로 지정
 
         self.to(self.device)
         for name, network in self.named_children():

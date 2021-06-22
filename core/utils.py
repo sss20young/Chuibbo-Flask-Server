@@ -106,17 +106,24 @@ def translate_using_reference(nets, args, x_src, x_ref, y_ref, filename):
     s_ref = nets.style_encoder(x_ref, y_ref)
     s_ref_list = s_ref.unsqueeze(1).repeat(1, N, 1)
 
+    # # 유저 이미지
+    # src_example = args.src_dir+'/mid/'+args.result_image_name
+    # src_example = cv2.read(src_example)
+    # print(x_src)
+    # x_src = tf.multiply(src_example, 1)
+
     # 유저가 선택한 헤어스타일 도메인만 적용
-    if args.selected_hairstyle == 'long': start, end = 0, 3
-    elif args.selected_hairstyle == 'mid': start, end = 3, 6
-    else: start, end = 6, 9
+    if args.selected_hairstyle == 'long': start, end = 0, 1
+    elif args.selected_hairstyle == 'mid': start, end = 1, 2
+    else: start, end = 2, 3
     
     for i, s_ref in enumerate(s_ref_list):
         if i >= start and i < end:
             x_fake = nets.generator(x_src, s_ref, masks=masks)
 
             # 결과물 이미지만 저장
-            save_image(x_fake, N+1, filename[:-4] + str(i) + filename[-4:]) # ex. image_name + 1 + .jpg
+            # save_image(x_fake, N+1, filename[:-4] + str(i) + filename[-4:]) # ex. image_name + 1 + .jpg
+            save_image(x_fake, N+1, filename)
 
 
 @torch.no_grad()
