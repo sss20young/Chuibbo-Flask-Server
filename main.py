@@ -9,12 +9,12 @@ Creative Commons, PO Box 1866, Mountain View, CA 94042, USA.
 """
 
 from flask import Flask, jsonify, request
+from flask.helpers import send_file
 
 import os
 import argparse
 import io
-from base64 import encodebytes
-from PIL import Image
+import numpy as np
 
 from munch import Munch
 from torch.backends import cudnn
@@ -25,6 +25,13 @@ from datetime import datetime
 from core.data_loader import get_test_loader
 from core.solver import Solver
 from img_processing import detect_faces, preprocessing_crop
+
+# 옵션을 선언 OSError: image file is truncated
+from PIL import ImageFile 
+ImageFile.LOAD_TRUNCATED_IMAGES = True
+
+from PIL import Image
+from rembg.bg import remove
 
 
 app = Flask(__name__)
@@ -60,69 +67,81 @@ def main(args):
         raise NotImplementedError
     return "A"
 
+hair_dict = {'long' : 1, 'mid' : 2, 'short' : 3}
 
-@app.route('/api/resume_photo/', methods=['GET', 'POST'])
+@app.route('/api/resume_photo/', methods=['POST'])
 def resume_photo():
-    if request.method == 'POST':
 
-        # STEP 1: 요청한 사진과 관련 정보 받고, assets/representative/resume/src 폴더에 사진 저장
-        photo = request.files['photo']
-        # id = request.form['id']
-        # hairstyle = request.form['hairstyle']
+    # STEP 1: 요청한 사진과 관련 정보 받고, assets/representative/resume/src 폴더에 사진 저장
+    photo = request.files['photo']
+    id = request.form['id']
+    sex = request.form['sex']
+    face_shape = request.form['face_shape']
+    hairstyle = request.form['hairstyle'] # 취업 사진 헤어스타일
+    prev_hairstyle = 'mid'
+    # prev_hairstyle = request.form['prev_hairstyle'] # TODO: 기존의 본인 헤어스타일
+    suit = request.form['suit']
 
-        arguments.selected_hairstyle = 'mid' # TODO: 안드로이드에서 헤어스타일 도메인 받기, 현재는 임시
-        save_image_path = './assets/representative/resume/src/' + arguments.selected_hairstyle + '/'
-        date = str(datetime.today().year) + '{:02d}'.format(datetime.today().month) + '{:02d}'.format(datetime.today().day)
-        image_name = date + '.jpg' # 사진이름 동적으로 생성 ex. 아이디+날짜시간 TODO: 아이디 추가하기
-        url = save_image_path + image_name
-        with open(url, 'wb') as f:
-            f.write(photo.read())
+    arguments.selected_hairstyle = hairstyle
+    src_dir_path = './assets/representative/resume/src/' + prev_hairstyle + '/'
+    date = '{:04d}'.format(datetime.today().year) + '{:02d}'.format(datetime.today().month) + '{:02d}'.format(datetime.today().day) + '{:02d}'.format(datetime.today().hour) + '{:02d}'.format(datetime.today().minute)
+    src_image = id + '_' + date + '.jpg' # 사진이름 동적으로 생성 ex. 아이디+날짜시간
+    src_image_path = src_dir_path + src_image
+    with open(src_image_path, 'wb') as f:
+        f.write(photo.read())
 
-        print("FINISH STEP1")
+    print("FINISH STEP1")
 
-        # STEP 2: 사람이 감지되는지 확인
-        number_of_face_detection = detect_faces(url)
-        if number_of_face_detection >= 2: # 2인 이상 감지되었을 때
-            print(number_of_face_detection)
-            return jsonify({ 'error message': '2인 이상 감지되었습니다.' }), 400
-        elif number_of_face_detection == 0: # 사람이 아무도 감지되지 않았을 때
-            print(number_of_face_detection)
-            return jsonify({ 'error message': '얼굴 인식에 실패하였습니다.' }), 400
+    # STEP 2: 사람이 감지되는지 확인
+    number_of_face_detection = detect_faces(src_image_path)
+    if number_of_face_detection >= 2: # 2인 이상 감지되었을 때
+        print(number_of_face_detection)
+        return jsonify({ 'error message': '2인 이상 감지되었습니다.' }), 400
+    elif number_of_face_detection == 0: # 사람이 아무도 감지되지 않았을 때
+        print(number_of_face_detection)
+        return jsonify({ 'error message': '얼굴 인식에 실패하였습니다.' }), 400
 
-        print("FINISH STEP2")
+    print("FINISH STEP2")
 
-        # STEP 3: 전처리(얼굴 가운데로 맞추는) 실행 후 origin image에 덮어쓰기
-        preprocessing_crop(url) # TODO: 도메인별(여-남, 헤어스타일 등)에 따라 다른 값 주기
+    # STEP 3: 전처리(얼굴 가운데로 맞추는) 실행 후 origin image에 덮어쓰기
+    preprocessing_crop(src_image_path) # TODO: 도메인별(여-남, 헤어스타일 등)에 따라 다른 값 주기
 
-        print("FINISH STEP3")
-        
-        # STEP 4: 모델을 통해 resume photo 생성
-        # TODO: 사진 저장 시, 결과 사진 한 장만 저장
-        arguments.result_image_name = image_name # 저장될 이미지 파일 이름 지정
-        print("----- Start creating resume photo!! -----")
-        main(arguments)
-        print("----- Finish creating resume photo!! -----")
+    print("FINISH STEP3")
+    
+    # STEP 4: 모델을 통해 resume photo 생성
+    # TODO: 사진 저장 시, 결과 사진 한 장만 저장
+    # TODO: 갑자기 src 각각 폴더에 이미지가 한 장씩 있어야 오류 안남
+    arguments.result_image_name = src_image # 저장될 이미지 파일 이름 지정
+    print("----- Start creating resume photo!! -----")
+    main(arguments)
+    print("----- Finish creating resume photo!! -----")
 
-        print("FINISH STEP4")
+    print("FINISH STEP4")
 
-        result_image = './expr/results/resume/'+image_name[:-4]+'3'+image_name[-4:] # TODO: 파일 이름 랜덤으로 secure하도록
-        pil_img = Image.open(result_image, mode='r') # reads the PIL image
-        byte_arr = io.BytesIO()
-        pil_img.save(byte_arr, format='PNG') # convert the PIL image to byte array
-        encoded_img = encodebytes(byte_arr.getvalue()).decode('ascii') # encode as base64
+    image_title, image_ext = os.path.splitext(src_image)
+    # '_' + str(hair_dict[hairstyle]) +
+    result_dir_path = './expr/results/resume/'
+    result_image_path = result_dir_path + src_image # TODO: 파일 이름 랜덤으로 secure하도록
+    result_image_jpg = Image.open(result_image_path)
+    result_image_png = result_dir_path + image_title + '.png'
+    result_image_jpg.save(result_image_png) # png로 변환
+    file = np.fromfile(result_image_png)
+    result = remove(file) # 배경 제거
+    pil_img = Image.open(io.BytesIO(result))
+    img_resize = pil_img.resize((int(pil_img.width), int(pil_img.height*4/3))) # 이미지 크기 조절
+    img_resize = img_resize.convert("RGB")
+    img_resize.save(result_image_png)
 
-        # STEP 5: assets/representative/resume/src 폴더에 저장된 사진 삭제
-        if os.path.exists(url):
-            os.remove(url)
-        else:
-            print("The file does not exist")
+    # STEP 5: assets/representative/resume/src 폴더에 저장된 사진 삭제
+    if os.path.exists(src_image_path):
+        os.remove(src_image_path)
+    else:
+        print("The file does not exist")
 
-        print("FINISH STEP6")
+    print("FINISH STEP5")
 
-        return jsonify({ 'OK': '취업사진이 생성되었습니다.', 'photo': encoded_img }), 200
-
-    elif request.method == 'GET':
-        print("")
+    # TODO: return jsonify({ 'OK': '취업사진이 생성되었습니다.', 'photo': encoded_img }), 200
+    return send_file(result_image_png, mimetype='image/png')
 
 if __name__ == '__main__':
     print("* Loading GAN model and Flask starting server... please wait until server has fully started")
