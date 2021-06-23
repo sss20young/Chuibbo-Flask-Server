@@ -110,7 +110,6 @@ def resume_photo():
     
     # STEP 4: 모델을 통해 resume photo 생성
     # TODO: 사진 저장 시, 결과 사진 한 장만 저장
-    # TODO: 갑자기 src 각각 폴더에 이미지가 한 장씩 있어야 오류 안남
     arguments.result_image_name = src_image # 저장될 이미지 파일 이름 지정
     print("----- Start creating resume photo!! -----")
     main(arguments)
@@ -127,6 +126,7 @@ def resume_photo():
     result_image_jpg.save(result_image_png) # png로 변환
     file = np.fromfile(result_image_png)
     result = remove(file) # 배경 제거
+    
     pil_img = Image.open(io.BytesIO(result))
     img_resize = pil_img.resize((int(pil_img.width), int(pil_img.height*4/3))) # 이미지 크기 조절
     img_resize = img_resize.convert("RGB")
@@ -140,7 +140,6 @@ def resume_photo():
 
     print("FINISH STEP5")
 
-    # TODO: return jsonify({ 'OK': '취업사진이 생성되었습니다.', 'photo': encoded_img }), 200
     return send_file(result_image_png, mimetype='image/png')
 
 if __name__ == '__main__':
