@@ -26,13 +26,7 @@ from core.data_loader import get_test_loader
 from core.solver import Solver
 from img_processing import detect_faces, preprocessing_crop
 
-# 옵션을 선언 OSError: image file is truncated
-from PIL import ImageFile 
-ImageFile.LOAD_TRUNCATED_IMAGES = True
-
 from PIL import Image
-from rembg.bg import remove
-
 
 app = Flask(__name__)
 
@@ -122,12 +116,12 @@ def resume_photo():
     result_dir_path = './expr/results/resume/'
     result_image_path = result_dir_path + src_image # TODO: 파일 이름 랜덤으로 secure하도록
     result_image_jpg = Image.open(result_image_path)
+    global result_image_png
     result_image_png = result_dir_path + image_title + '.png'
     result_image_jpg.save(result_image_png) # png로 변환
     file = np.fromfile(result_image_png)
-    result = remove(file) # 배경 제거
     
-    pil_img = Image.open(io.BytesIO(result))
+    pil_img = Image.open(io.BytesIO(file))
     img_resize = pil_img.resize((int(pil_img.width), int(pil_img.height*4/3))) # 이미지 크기 조절
     img_resize = img_resize.convert("RGB")
     img_resize.save(result_image_png)
