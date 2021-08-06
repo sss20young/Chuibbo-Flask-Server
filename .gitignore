@@ -108,3 +108,7 @@ data/
 *.jpg
 *.jpeg
 *.png
+
+shape_predictor_68_face_landmarks.dat
+expr/checkpoints/wing.ckpt
+expr/checkpoints/resume/*.ckpt
