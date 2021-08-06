@@ -1,3 +1,0 @@
-#!/Users/seohyunkim/Chuibbo-Flask-Server/chuibbo-flask/bin/python3
-from numba.pycc import main
-main()

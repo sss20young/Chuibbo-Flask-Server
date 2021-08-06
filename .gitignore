@@ -111,4 +111,8 @@ data/
 
 shape_predictor_68_face_landmarks.dat
 expr/checkpoints/wing.ckpt
-expr/checkpoints/resume/*.ckpt
+expr/checkpoints/resume/*
+chuibbo-flask/
+chuibbo-flask2/
+.DS_Store
+.vscode
