@@ -24,10 +24,10 @@ RIGHT_PUPIL = [43, 44, 46, 47]
 # ALL = [RIGHT_EYEBROW, LEFT_EYEBROW, RIGHT_EYE, LEFT_EYE, NOSE, MOUTH_OUTLINE, MOUTH_INNER, JAWLINE, RIGHT_CHEEK,LEFT_CHEEK]
 
 class makeUp:
-    def __init__(self):
+    def __init__(self, param):
         self.img = None
         self.make = None
-
+        self.param = param
         self.detector = dlib.get_frontal_face_detector()
         self.predictor = dlib.shape_predictor("../data/shape_predictor_68_face_landmarks.dat")
 
@@ -111,6 +111,6 @@ class makeUp:
         # cv.destroyAllWindows()
 
 if __name__ == '__main__':
-    make = makeUp()
+    make = makeUp(None)
     make.readImg()
     make.makeUpFeatures(size=(11,11))

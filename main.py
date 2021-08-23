@@ -1,7 +1,6 @@
 """
 StarGAN v2
 Copyright (c) 2020-present NAVER Corp.
-
 This work is licensed under the Creative Commons Attribution-NonCommercial
 4.0 International License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-nc/4.0/ or send a letter to
@@ -182,9 +181,7 @@ def parameter():
 
 @app.route('/api/strong', methods=['POST'])
 def strong():
-    #print(request.is_json)
     params = request.get_json()
-    #print(params/200)
     dataStrong(params/200)
     return Response()
 
@@ -193,11 +190,10 @@ def makeUpFace():
     params = request.get_json()
     print("메이크업 시작......")
     print(GR, GG, GB, GS, ID, GT)
-    make = makeUp()
+    make = makeUp(params)
     make.readImg()  # 이미지 초기화
     make.makeUpFeatures(r=GR, g=GG, b=GB, size=(GS, GS), index=ID, strong=GT)
-    return Response(response=params)
-
+    return Response(response=params, status=200, mimetype="application/json")
 
 if __name__ == '__main__':
     print("* Loading GAN model and Flask starting server... please wait until server has fully started")
