@@ -1,8 +1,10 @@
-import cv2, os
+import cv2
+import io
+import os
 import numpy as np
 import cv2 as cv
-from os import listdir
-from os.path import isfile, join
+from PIL import Image
+from base64 import encodebytes
 
 def detect_faces(img_path):
     face_cascade = cv.CascadeClassifier('haarcascade_frontalface_default.xml')
@@ -69,3 +71,19 @@ def preprocessing_crop(img_path):
             endx = x + w + x1
             cropped = constant[starty:endy, startx:endx]
             cv2.imwrite(img_path, cropped) # 최종 이미지를 저장할 경로 지정
+
+def transform_encoded_image(result_image_png):
+    file = np.fromfile(result_image_png)
+    pil_img = Image.open(io.BytesIO(file))
+    img_resize = pil_img.resize((int(pil_img.width), int(pil_img.height*9/7))) # 이미지 크기 조절
+    img_resize = img_resize.convert("RGB")
+    byte_arr = io.BytesIO()
+    img_resize.save(byte_arr, format='PNG')
+    encoded_img = encodebytes(byte_arr.getvalue())
+    return encoded_img
+
+def delete_image(path):
+    if os.path.exists(path):
+        os.remove(path)
+    else:
+        print("The file does not exist")
