@@ -24,7 +24,6 @@ from core.data_loader import InputFetcher
 import core.utils as utils
 from metrics.eval import calculate_metrics
 
-
 class Solver(nn.Module):
     def __init__(self, args):
         super().__init__()
@@ -53,7 +52,7 @@ class Solver(nn.Module):
             self.ckptios = [
                 CheckpointIO(ospj(args.checkpoint_dir, '020000_nets.ckpt'), **self.nets), # 파일명 020000으로 지정
                 CheckpointIO(ospj(args.checkpoint_dir, '020000_nets_ema.ckpt'), **self.nets_ema), # 파일명 020000으로 지정
-                CheckpointIO(ospj(args.checkpoint_dir, '020000_optims.ckpt'), **self.optims)] # 파일명 020000으로 지정 
+                CheckpointIO(ospj(args.checkpoint_dir, '020000_optims.ckpt'), **self.optims)] # 파일명 020000으로 지정
         else:
             self.ckptios = [CheckpointIO(ospj(args.checkpoint_dir, '100000_nets_ema.ckpt'), **self.nets_ema)] # 파일명 100000으로 지정
 

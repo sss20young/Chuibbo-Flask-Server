@@ -32,7 +32,7 @@ class makeUp:
         self.predictor = dlib.shape_predictor("../data/shape_predictor_68_face_landmarks.dat")
 
     def readImg(self):
-        self.img = cv.imread('static/Input.jpg')
+        self.img = cv.imread('./static/Input.jpg')
 
     def makeUpFeatures(self, r, g, b, size, index, strong):
 
@@ -102,7 +102,7 @@ class makeUp:
 
                 # cv.imshow('BGR', imgColorFeatures)
                 # cv.imshow('ORG', imgOriginal)
-                cv.imwrite('static/Output.jpg', imgColorFeatures)
+                cv.imwrite('./static/Output.jpg', imgColorFeatures)
                 print(index, "저장...")
                 # cv.imshow('Lips', imgFeatures)
                 # print(myPoints)
