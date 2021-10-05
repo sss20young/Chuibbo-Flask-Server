@@ -1,7 +1,6 @@
 """
 StarGAN v2
 Copyright (c) 2020-present NAVER Corp.
-
 This work is licensed under the Creative Commons Attribution-NonCommercial
 4.0 International License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-nc/4.0/ or send a letter to
@@ -28,6 +27,8 @@ from core.solver import Solver
 from img_processing import delete_image, detect_faces, preprocessing_crop, transform_encoded_image
 
 from PIL import Image
+
+import traceback
 
 app = Flask(__name__)
 
@@ -143,6 +144,8 @@ def resume_photo():
         delete_image(src_image_path)
         delete_image(result_image_path)
         delete_image(result_image_png)
+
+        print(traceback.format_exc())
 
         return jsonify({ 'code': 4, 'message': '사진 합성 중 예기치 못한 오류가 발생하였습니다.'}), 200
 
