@@ -1,6 +1,7 @@
 """
 StarGAN v2
 Copyright (c) 2020-present NAVER Corp.
+
 This work is licensed under the Creative Commons Attribution-NonCommercial
 4.0 International License. To view a copy of this license, visit
 http://creativecommons.org/licenses/by-nc/4.0/ or send a letter to
@@ -98,6 +99,10 @@ def resume_photo():
     with open(src_image_path, 'wb') as f:
         f.write(photo.read())
 
+    # 선언을 위한 할당(초기화)
+    result_image_path = './expr/results/resume/example.jpg'
+    result_image_png = './expr/results/resume/example.png'
+
     print("FINISH STEP1")
 
     try:
@@ -105,10 +110,10 @@ def resume_photo():
         number_of_face_detection = detect_faces(src_image_path)
         if number_of_face_detection >= 2: # 2인 이상 감지되었을 때
             print(number_of_face_detection)
-            return jsonify({ 'code': "2", 'message': '2인 이상 감지되었습니다.'}), 200
+            return jsonify({ 'code': 2, 'message': '2인 이상 감지되었습니다.'}), 200
         elif number_of_face_detection == 0: # 사람이 아무도 감지되지 않았을 때
             print(number_of_face_detection)
-            return jsonify({ 'code': "3", 'message': '얼굴 인식에 실패하였습니다.'}), 200
+            return jsonify({ 'code': 3, 'message': '얼굴 인식에 실패하였습니다.'}), 200
 
         print("FINISH STEP2")
 
@@ -130,7 +135,6 @@ def resume_photo():
         result_dir_path = './expr/results/resume'
         result_image_path = f'{result_dir_path}/{src_image}' # TODO: 파일 이름 랜덤으로 secure하도록
         result_image_jpg = Image.open(result_image_path)
-        global result_image_png
         result_image_png = f'{result_dir_path}/{image_title}.png'
         result_image_jpg.save(result_image_png) # png로 변환
         encoded_img = transform_encoded_image(result_image_png)
@@ -139,16 +143,18 @@ def resume_photo():
         delete_image(src_image_path)
         delete_image(result_image_path)
         delete_image(result_image_png)
-        return jsonify({ 'code': "4", 'message': '사진 합성 중 예기치 못한 오류가 발생하였습니다.'}), 500
 
-    # STEP 5: assets/representative/resume/src 폴더에 저장된 사진 삭제
-    delete_image(result_image_path)
-    delete_image(src_image_path)
-    delete_image(result_image_png)
+        return jsonify({ 'code': 4, 'message': '사진 합성 중 예기치 못한 오류가 발생하였습니다.'}), 200
 
-    print("FINISH STEP5")
+    else:
+        # STEP 5: assets/representative/resume/src 폴더에 저장된 사진 삭제
+        delete_image(src_image_path)
+        delete_image(result_image_path)
+        delete_image(result_image_png)
 
-    return json.dumps({ "code": 1, "message": "", "data": encoded_img.decode('ascii') }), 200
+        print("FINISH STEP5")
+
+        return json.dumps({ 'code': 1, 'message': '', 'data': encoded_img.decode('ascii') }), 200
 
 
 """ MAKEUP API """
@@ -181,7 +187,9 @@ def parameter():
 
 @app.route('/api/strong', methods=['POST'])
 def strong():
+    #print(request.is_json)
     params = request.get_json()
+    #print(params/200)
     dataStrong(params/200)
     return Response()
 
@@ -190,10 +198,11 @@ def makeUpFace():
     params = request.get_json()
     print("메이크업 시작......")
     print(GR, GG, GB, GS, ID, GT)
-    make = makeUp(params)
+    make = makeUp()
     make.readImg()  # 이미지 초기화
     make.makeUpFeatures(r=GR, g=GG, b=GB, size=(GS, GS), index=ID, strong=GT)
-    return Response(response=params, status=200, mimetype="application/json")
+    return Response(response=params)
+
 
 if __name__ == '__main__':
     print("* Loading GAN model and Flask starting server... please wait until server has fully started")
