@@ -277,7 +277,7 @@ def makeUpFace():
     params = request.get_json()
     print("메이크업 시작......")
     print(GR, GG, GB, GS, ID, GT)
-    make = makeUp(params)
+    make = makeUp()
     make.readImg()  # 이미지 초기화
     make.makeUpFeatures(r=GR, g=GG, b=GB, size=(GS, GS), index=ID, strong=GT)
     return Response(response=params)
