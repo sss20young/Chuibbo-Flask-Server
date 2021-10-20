@@ -10,6 +10,13 @@ Refactor: 코드 리팩토링에 대한 커밋
 Test: 테스트 코드 수정에 대한 커밋
 ```
 
+## 실행
+```bash
+gunicorn main:app --bind=[ip주소]:[포트번호] -w [worker process 수] -k sync
+```
+worker process 수는 실행하는 머신의 물리적 코어수에 맞게 설정하는게 좋다.
+
+
 ## Download requirements.txt
 ```bash
 pip install -r requirements.txt
@@ -58,5 +65,5 @@ bash download.sh wing
 ```
 
 ## Training networks
-To train StarGAN v2 from scratch, run the following commands. Generated images and network checkpoints will be stored in the `expr/samples` and `expr/checkpoints` directories, respectively. Training takes about three days on a single Tesla V100 GPU. Please see [here](https://github.com/clovaai/stargan-v2/blob/master/main.py#L86-L179) for training arguments and a description of them. 
+To train StarGAN v2 from scratch, run the following commands. Generated images and network checkpoints will be stored in the `expr/samples` and `expr/checkpoints` directories, respectively. Training takes about three days on a single Tesla V100 GPU. Please see [here](https://github.com/clovaai/stargan-v2/blob/master/main.py#L86-L179) for training arguments and a description of them.
 
