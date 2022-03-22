@@ -1,14 +1,13 @@
+
+## API
+![Chuibbo-Flask Swagger UI](https://user-images.githubusercontent.com/43838022/158011449-6313bd1f-23aa-4efe-a636-954856ccfbe5.png)
+
+## 실행
 ```bash
-Feat: 새로운 기능에 대한 커밋
-Fix: 버그 수정에 대한 커밋
-Build: 빌드 관련 파일 수정에 대한 커밋
-Chore: 그 외 자잘한 수정에 대한 커밋
-Ci: CI관련 설정 수정에 대한 커밋
-Docs: 문서 수정에 대한 커밋
-Style: 코드 스타일 혹은 포맷 등에 관한 커밋
-Refactor: 코드 리팩토링에 대한 커밋
-Test: 테스트 코드 수정에 대한 커밋
+gunicorn main:app --bind=[ip주소]:[포트번호] -w [worker process 수] -k sync
 ```
+worker process 수는 실행하는 머신의 물리적 코어수에 맞게 설정하는게 좋다.
+
 
 ## Download requirements.txt
 ```bash
@@ -58,5 +57,5 @@ bash download.sh wing
 ```
 
 ## Training networks
-To train StarGAN v2 from scratch, run the following commands. Generated images and network checkpoints will be stored in the `expr/samples` and `expr/checkpoints` directories, respectively. Training takes about three days on a single Tesla V100 GPU. Please see [here](https://github.com/clovaai/stargan-v2/blob/master/main.py#L86-L179) for training arguments and a description of them. 
+To train StarGAN v2 from scratch, run the following commands. Generated images and network checkpoints will be stored in the `expr/samples` and `expr/checkpoints` directories, respectively. Training takes about three days on a single Tesla V100 GPU. Please see [here](https://github.com/clovaai/stargan-v2/blob/master/main.py#L86-L179) for training arguments and a description of them.
 
