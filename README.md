@@ -1,6 +1,6 @@
 
 ## API
-![Chuibbo-Flask Swagger UI](https://user-images.githubusercontent.com/43838022/158011449-6313bd1f-23aa-4efe-a636-954856ccfbe5.png)
+![Chuibbo-Flask Swagger UI](https://user-images.githubusercontent.com/43838022/159552899-3b0fe45a-8b85-405b-83b4-93de613c6399.png)
 
 ## 실행
 ```bash
